@@ -17,6 +17,7 @@ from torch.ao.quantization import (
 )
 from torch.ao.quantization.utils import getattr_from_fqn
 from torch.ao.quantization.quantize import is_activation_post_process
+from torch.ao.quantization.fx.utils import get_all_args_as_positional_args
 
 from .ns_types import NSNodeTargetType, NSResultsType
 
@@ -257,16 +258,18 @@ def return_first_non_observer_node(
     if node.op == "call_module":
         node_obj = getattr_from_fqn(gm, node.target)  # type: ignore[arg-type]
         if is_activation_post_process(node_obj):
-            assert len(node.args) == 1
-            assert isinstance(node.args[0], Node)
-            node = node.args[0]
+            all_node_args = get_all_args_as_positional_args(node)
+            assert len(all_node_args) == 1
+            assert isinstance(all_node_args[0], Node)
+            node = all_node_args[0]
             # code duplication intended, not worth refactoring
             assert isinstance(node.target, str)
             node_obj = getattr_from_fqn(gm, node.target)
             if is_activation_post_process(node_obj):
-                assert len(node.args) == 1
-                assert isinstance(node.args[0], Node)
-                node = node.args[0]
+                all_node_args = get_all_args_as_positional_args(node)
+                assert len(all_node_args) == 1
+                assert isinstance(all_node_args[0], Node)
+                node = all_node_args[0]
     return node
 
 
@@ -308,7 +311,8 @@ def get_arg_indices_of_inputs_to_log(node: Node) -> List[int]:
     * for (linear(x, w, b)) returns [0]
     * by default, returns [0]
     """
-    if len(node.args) == 0:
+    all_node_args = get_all_args_as_positional_args(node)
+    if len(all_node_args) == 0:
         return []
     if node.op == "call_function" and (
         # TODO(future PR): use relationship map instead of hardcoding
@@ -317,7 +321,7 @@ def get_arg_indices_of_inputs_to_log(node: Node) -> List[int]:
     ):
         result = []
         for i in range(2):
-            if type(node.args[i]) == Node:
+            if type(all_node_args[i]) == Node:
                 result.append(i)
         return result
     return [0]
