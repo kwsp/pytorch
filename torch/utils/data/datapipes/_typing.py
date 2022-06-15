@@ -3,9 +3,9 @@
 
 import collections
 import functools
-import inspect
 import numbers
 import sys
+from torch.utils.data.datapipes._hook_iterator import hook_iterator
 from typing import (Any, Dict, Iterator, Generic, List, Set, Tuple, TypeVar, Union,
                     get_type_hints)
 from typing import _eval_type, _tp_cache, _type_check, _type_repr  # type: ignore[attr-defined]
@@ -21,7 +21,6 @@ from typing import _GenericAlias  # type: ignore[attr-defined, no-redef]
 class GenericMeta(ABCMeta):  # type: ignore[no-redef]
     pass
 
-import torch
 
 class Integer(numbers.Integral):
     pass
@@ -382,6 +381,7 @@ class _IterDataPipeMeta(_DataPipeMeta):
         return super().__new__(cls, name, bases, namespace, **kwargs)  # type: ignore[call-overload]
 
 
+<<<<<<< HEAD
 def _simplify_obj_name(obj) -> str:
     """
     Simplify the display strings of objects for the purpose of rendering within DataPipe error messages.
